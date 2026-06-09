@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Uptime Monitor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+  <h2>Uptime<span>Pro</span></h2>
+  <p>Cloud Monitoring Dashboard</p>
+
+  <div class="nav active" onclick="scrollToSection('dashboardSection')">📊 Dashboard</div>
+  <div class="nav" onclick="scrollToSection('websitesSection')">🌐 Websites</div>
+  <div class="nav" onclick="scrollToSection('alertsSection')">🚨 Alerts</div>
+  <div class="nav" onclick="scrollToSection('logsSection')">📄 Logs</div>
+</aside>
+
+  <main class="main">
+    <section class="hero" id="dashboardSection">
+      <div>
+        <span class="badge">LIVE MONITORING</span>
+        <h1>Site Uptime Monitor</h1>
+        <p>Monitor uptime, downtime, response time and receive instant Telegram alerts.</p>
+      </div>
+      <button onclick="checkAllSites()">Check All Now</button>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <p>Total Sites</p>
+        <h2 id="totalSites">0</h2>
+      </div>
+      <div class="stat green">
+        <p>Online</p>
+        <h2 id="upSites">0</h2>
+      </div>
+      <div class="stat red">
+        <p>Down</p>
+        <h2 id="downSites">0</h2>
+      </div>
+      <div class="stat yellow">
+        <p>Slow</p>
+        <h2 id="slowSites">0</h2>
+      </div>
+    </section>
+
+    <section class="grid" id="websitesSection">
+      <div class="card">
+        <h3>Add Website</h3>
+        <input id="siteName" placeholder="Website name">
+        <input id="siteUrl" placeholder="https://example.com">
+        <button class="primary" onclick="addSite()">+ Add Website</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Monitored Websites</h3>
+          <span id="lastRefresh">Auto refresh on</span>
+        </div>
+        <div id="sitesList" class="sites"></div>
+      </div>
+    </section>
+    
+    <section class="card" id="alertsSection">
+  <div class="card-head">
+    <h3>Response Time Analytics</h3>
+    <span>Latest monitoring performance</span>
+  </div>
+
+  <div class="chart-box">
+    <canvas id="responseChart"></canvas>
+  </div>
+</section>
+
+    <section class="card" id="logsSection">
+      <div class="card-head">
+        <h3>Recent Monitoring Logs</h3>
+        <button class="small" onclick="loadData()">Refresh</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Site</th>
+              <th>URL</th>
+              <th>Status</th>
+              <th>Code</th>
+              <th>Response</th>
+              <th>Checked At</th>
+            </tr>
+          </thead>
+          <tbody id="logsTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

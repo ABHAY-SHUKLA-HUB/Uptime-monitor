@@ -1,144 +1,277 @@
-# Site Uptime Monitoring System
+# 🚀 UptimePro – Azure-Based Site Uptime Monitoring System
 
-A real-time website uptime monitoring dashboard built with Flask, SQLite, APScheduler, JavaScript, and Telegram alerts. This project monitors website availability, response time, HTTP status codes, uptime percentage, and sends instant alerts when a website goes down.
+UptimePro is a cloud-based website uptime monitoring platform built using Python Flask and deployed completely on Microsoft Azure Cloud.
 
-## 🚀 Features
+The system continuously monitors websites, tracks uptime percentage, response time, and sends instant Telegram alerts whenever a website goes down.
 
-- Add and monitor multiple websites
-- Automatic uptime checks using background scheduler
-- Manual “Check All Now” option
-- UP / DOWN / SLOW status tracking
-- Response time monitoring
-- Uptime percentage calculation
-- Recent monitoring logs
-- Premium dashboard UI
-- Response time analytics chart
-- Telegram downtime alerts
-- Delete monitored websites
-- Secure environment variables using `.env`
+This project demonstrates real-world cloud deployment, monitoring, automation, database integration, and Azure cloud services implementation.
 
-## 🛠️ Tech Stack
+---
 
-- **Backend:** Python, Flask
-- **Database:** SQLite
-- **Scheduler:** APScheduler
-- **Frontend:** HTML, CSS, JavaScript
-- **Charts:** Chart.js
-- **Alerts:** Telegram Bot API
-- **Security:** python-dotenv for environment variables
+# 🌐 Live Features
 
-## 📁 Project Structure
+✅ Website Uptime Monitoring
+✅ Real-Time Website Health Check
+✅ Automatic Monitoring Scheduler
+✅ Telegram Alert Notifications
+✅ Azure PostgreSQL Cloud Database
+✅ Response Time Analytics
+✅ Uptime Percentage Tracking
+✅ Monitoring Dashboard UI
+✅ Cloud Deployment on Azure
+✅ Application Performance Monitoring
+✅ CI/CD Deployment using GitHub & Azure
 
-```txt
-uptime-monitor/
-├── app.py
-├── database.py
-├── requirements.txt
-├── README.md
-├── .env.example
-├── .gitignore
-├── templates/
-│   └── index.html
-└── static/
-    ├── style.css
-    └── script.js
-```
+---
 
-## ⚙️ Setup Instructions
+# 🛠️ Tech Stack
 
-### 1. Clone the repository
+## 🔹 Backend
+
+* Python
+* Flask
+* APScheduler
+* Requests
+* Flask-CORS
+* Psycopg2
+
+## 🔹 Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+## 🔹 Database
+
+* Azure PostgreSQL Flexible Server
+
+## 🔹 Cloud Services
+
+* Azure App Service
+* Azure PostgreSQL
+* Azure Application Insights
+
+## 🔹 Monitoring & Alerts
+
+* Telegram Bot API
+* Azure Logs & Monitoring
+
+## 🔹 DevOps / Deployment
+
+* Git
+* GitHub
+* GitHub Actions
+* Azure Deployment Center
+* CI/CD Deployment
+
+---
+
+# ☁️ Azure Services Used
+
+## 🔹 Azure App Service
+
+Hosted and deployed the Flask application on Microsoft Azure cloud platform.
+
+### Used For:
+
+* Cloud hosting
+* Application deployment
+* Public URL hosting
+* CI/CD integration
+
+---
+
+## 🔹 Azure PostgreSQL Flexible Server
+
+Used as the cloud database to store:
+
+* Website information
+* Monitoring logs
+* Uptime history
+* Response time records
+
+### Features Used:
+
+* Cloud database management
+* Firewall configuration
+* Secure database access
+* PostgreSQL integration with Flask
+
+---
+
+## 🔹 Azure Application Insights
+
+Used for:
+
+* Application monitoring
+* Error tracking
+* Performance analytics
+* Request monitoring
+* Log monitoring
+
+---
+
+# 🔄 CI/CD Deployment
+
+Implemented automatic deployment pipeline using:
+
+GitHub → Azure App Service Deployment Center
+
+Whenever code is pushed to GitHub:
+
+1. Azure automatically pulls latest code
+2. Dependencies are installed
+3. Application is redeployed automatically
+
+This simulates a real-world DevOps deployment workflow.
+
+---
+
+# 📊 Project Workflow
+
+## Step 1
+
+User adds website URL from dashboard.
+
+## Step 2
+
+Website data is stored inside Azure PostgreSQL database.
+
+## Step 3
+
+APScheduler automatically checks websites periodically.
+
+## Step 4
+
+Application measures:
+
+* Website status
+* Response time
+* Uptime percentage
+
+## Step 5
+
+Monitoring logs are stored in Azure PostgreSQL.
+
+## Step 6
+
+If website becomes DOWN:
+
+* Telegram alert is triggered instantly.
+
+## Step 7
+
+Dashboard displays:
+
+* Monitoring analytics
+* Logs
+* Website uptime status
+
+---
+
+# 📸 Dashboard Features
+
+✅ Add Websites
+✅ Delete Websites
+✅ Real-Time Monitoring
+✅ Response Time Graphs
+✅ Uptime Analytics
+✅ Monitoring Logs
+✅ Telegram Alerts
+✅ Cloud Monitoring Dashboard
+
+---
+
+# ⚡ Local Setup
+
+## Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/site-uptime-monitor.git
-cd site-uptime-monitor
+git clone https://github.com/YOUR_USERNAME/Uptime-monitor.git
+cd Uptime-monitor
 ```
 
-### 2. Create virtual environment
+---
 
-```bash
-python -m venv venv
-```
-
-### 3. Activate virtual environment
-
-Windows PowerShell:
-
-```bash
-venv\Scripts\activate
-```
-
-### 4. Install dependencies
+## Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Create `.env` file
+---
 
-```env
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-TELEGRAM_CHAT_ID=your_telegram_chat_id
-```
-
-### 6. Run the project
+## Run Application
 
 ```bash
 python app.py
 ```
 
-Open in browser:
+---
 
-```txt
-http://127.0.0.1:5000
+# 🔐 Environment Variables
+
+Create `.env` file:
+
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+
+DB_HOST=your_azure_postgresql_host
+DB_NAME=postgres
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_PORT=5432
 ```
 
-## 🔗 API Endpoints
+---
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/` | Dashboard UI |
-| POST | `/api/add-site` | Add a website |
-| GET | `/api/sites` | Get all websites |
-| POST | `/api/check-site` | Check single website |
-| GET | `/api/check-all` | Check all websites manually |
-| GET | `/api/logs` | Get recent monitoring logs |
-| GET | `/api/site-stats` | Get uptime percentage stats |
-| DELETE | `/api/delete-site/<site_id>` | Delete a website |
+# 📈 Future Improvements
 
-## 📊 How It Works
+* Email Notifications
+* SMS Alerts
+* AI-Based Downtime Prediction
+* Docker Containerization
+* Kubernetes Deployment
+* Multi-user Authentication
+* Public Status Page
+* SLA Reporting
+* SSL Monitoring
 
-1. User adds website URL from the dashboard.
-2. Flask backend stores the website in SQLite database.
-3. APScheduler automatically checks all websites every minute.
-4. System records response time, status code, and website status.
-5. If a website is down, Telegram alert is sent instantly.
-6. Dashboard displays uptime percentage, logs, cards, and charts.
+---
 
-## ☁️ Azure Use Case
+# 🧠 Learning Outcomes
 
-This project can be deployed and enhanced using Azure services:
+This project helped in understanding:
 
-- **Azure App Service:** Host the Flask backend and dashboard
-- **Azure Database for PostgreSQL:** Replace SQLite for production database
-- **Azure Monitor:** Track app performance, logs, failures, and uptime
-- **Application Insights:** Monitor API response time and exceptions
-- **Azure Key Vault:** Store Telegram bot token and secrets securely
-- **Azure Functions:** Run scheduled uptime checks serverlessly
+✅ Azure Cloud Deployment
+✅ Flask Backend Development
+✅ PostgreSQL Cloud Database
+✅ CI/CD Deployment
+✅ Monitoring Systems
+✅ Cloud Networking
+✅ Automation Scheduling
+✅ Real-Time Alert Systems
+✅ Application Monitoring
+✅ Production Deployment Workflow
 
-## 💼 Resume Description
+---
 
-Built a real-time Site Uptime Monitoring System using Python Flask, SQLite, APScheduler, JavaScript, and Telegram Bot API. The system monitors multiple websites, tracks response time, calculates uptime percentage, stores monitoring logs, displays analytics on a dashboard, and sends instant downtime alerts.
+# 👨‍💻 Author
 
-## 📌 Future Improvements
+## Abhay Shukla
 
-- Email alerts
-- User authentication
-- PostgreSQL database
-- Azure App Service deployment
-- Docker support
-- Advanced charts and reports
-- Public status page
+Cloud & Backend Developer
+Azure | Python | Flask | PostgreSQL | DevOps | Monitoring Systems
 
-## 👨‍💻 Author
+---
 
-Abhay Shukla
+# ⭐ Resume Highlights
+
+* Built and deployed a cloud-based uptime monitoring platform using Microsoft Azure.
+* Integrated Azure PostgreSQL Flexible Server with Flask backend.
+* Implemented automatic monitoring scheduler using APScheduler.
+* Added Telegram alert system for real-time downtime notifications.
+* Configured Azure Application Insights for monitoring and analytics.
+* Implemented CI/CD deployment using GitHub and Azure App Service.
+* Designed real-time uptime analytics dashboard with monitoring logs.

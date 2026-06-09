@@ -52,7 +52,7 @@ def check_single_site(site_id, url):
         status_code = response.status_code
 
         if 200 <= status_code < 400:
-            status = "SLOW" if response_time > 5000 else "UP"
+            status = "SLOW" if response_time > 3000 else "UP"
         else:
             status = "DOWN"
 

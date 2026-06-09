@@ -1,8 +1,21 @@
-import sqlite3
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def get_db_connection():
-    conn = sqlite3.connect("uptime_monitor.db")
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        port=os.getenv("DB_PORT"),
+        sslmode="require",
+        cursor_factory=RealDictCursor
+    )
     return conn
 
 
@@ -12,7 +25,7 @@ def create_tables():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             url TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -21,15 +34,15 @@ def create_tables():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS uptime_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            site_id INTEGER,
+            id SERIAL PRIMARY KEY,
+            site_id INTEGER REFERENCES sites(id) ON DELETE CASCADE,
             status TEXT,
             status_code INTEGER,
-            response_time REAL,
-            checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(site_id) REFERENCES sites(id)
+            response_time FLOAT,
+            checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
     conn.commit()
+    cursor.close()
     conn.close()

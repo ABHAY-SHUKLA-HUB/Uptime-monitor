@@ -17,8 +17,13 @@ CORS(app)
 
 create_tables()
 
+
 def send_telegram_alert(message):
     try:
+        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+            print("[ALERT SKIPPED] Telegram env not configured")
+            return
+
         telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
         payload = {
@@ -27,11 +32,11 @@ def send_telegram_alert(message):
         }
 
         requests.post(telegram_url, json=payload, timeout=5)
-
         print("[ALERT SENT] Telegram notification sent")
 
     except Exception as e:
         print("[ALERT ERROR]", str(e))
+
 
 def check_single_site(site_id, url):
     status_code = None
@@ -60,25 +65,26 @@ def check_single_site(site_id, url):
     cursor.execute(
         """
         INSERT INTO uptime_logs (site_id, status, status_code, response_time)
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
         """,
         (site_id, status, status_code, response_time)
     )
 
     conn.commit()
+    cursor.close()
     conn.close()
 
     print(f"[AUTO CHECK] {url} => {status}")
+
     if status == "DOWN":
         alert_message = f"""
-    🚨 Site Down Alert
+🚨 Site Down Alert
 
-    URL: {url}
-    Status: {status}
-    Status Code: {status_code}
-    Response Time: {response_time} ms
-    """
-
+URL: {url}
+Status: {status}
+Status Code: {status_code}
+Response Time: {response_time} ms
+"""
         send_telegram_alert(alert_message)
 
     return {
@@ -91,7 +97,12 @@ def check_single_site(site_id, url):
 
 def monitor_all_sites():
     conn = get_db_connection()
-    sites = conn.execute("SELECT * FROM sites").fetchall()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM sites")
+    sites = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
     for site in sites:
@@ -101,6 +112,30 @@ def monitor_all_sites():
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+@app.route("/api/db-test")
+def db_test():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT version();")
+        version = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "status": "connected",
+            "database": version["version"]
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
 @app.route("/api/add-site", methods=["POST"])
@@ -120,12 +155,19 @@ def add_site():
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO sites (name, url) VALUES (?, ?)",
+        """
+        INSERT INTO sites (name, url)
+        VALUES (%s, %s)
+        RETURNING id
+        """,
         (name, url)
     )
 
+    site = cursor.fetchone()
+    site_id = site["id"]
+
     conn.commit()
-    site_id = cursor.lastrowid
+    cursor.close()
     conn.close()
 
     return jsonify({
@@ -139,10 +181,15 @@ def add_site():
 @app.route("/api/sites", methods=["GET"])
 def get_sites():
     conn = get_db_connection()
-    sites = conn.execute("SELECT * FROM sites ORDER BY id DESC").fetchall()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM sites ORDER BY id DESC")
+    sites = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
-    return jsonify([dict(site) for site in sites])
+    return jsonify(sites)
 
 
 @app.route("/api/check-site", methods=["POST"])
@@ -160,19 +207,25 @@ def check_site():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id FROM sites WHERE url = ? LIMIT 1", (url,))
+    cursor.execute("SELECT id FROM sites WHERE url = %s LIMIT 1", (url,))
     site = cursor.fetchone()
 
     if site:
         site_id = site["id"]
     else:
         cursor.execute(
-            "INSERT INTO sites (name, url) VALUES (?, ?)",
+            """
+            INSERT INTO sites (name, url)
+            VALUES (%s, %s)
+            RETURNING id
+            """,
             (url, url)
         )
+        new_site = cursor.fetchone()
+        site_id = new_site["id"]
         conn.commit()
-        site_id = cursor.lastrowid
 
+    cursor.close()
     conn.close()
 
     result = check_single_site(site_id, url)
@@ -191,8 +244,9 @@ def check_all_now():
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
     conn = get_db_connection()
+    cursor = conn.cursor()
 
-    logs = conn.execute("""
+    cursor.execute("""
         SELECT 
             uptime_logs.id,
             sites.name,
@@ -205,11 +259,14 @@ def get_logs():
         JOIN sites ON uptime_logs.site_id = sites.id
         ORDER BY uptime_logs.id DESC
         LIMIT 50
-    """).fetchall()
+    """)
 
+    logs = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
-    return jsonify([dict(log) for log in logs])
+    return jsonify(logs)
 
 
 @app.route("/api/delete-site/<int:site_id>", methods=["DELETE"])
@@ -217,10 +274,11 @@ def delete_site(site_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM uptime_logs WHERE site_id = ?", (site_id,))
-    cursor.execute("DELETE FROM sites WHERE id = ?", (site_id,))
+    cursor.execute("DELETE FROM uptime_logs WHERE site_id = %s", (site_id,))
+    cursor.execute("DELETE FROM sites WHERE id = %s", (site_id,))
 
     conn.commit()
+    cursor.close()
     conn.close()
 
     return jsonify({
@@ -232,28 +290,35 @@ def delete_site(site_id):
 @app.route("/api/site-stats", methods=["GET"])
 def site_stats():
     conn = get_db_connection()
+    cursor = conn.cursor()
 
-    stats = conn.execute("""
+    cursor.execute("""
         SELECT 
             sites.id,
             sites.name,
             sites.url,
-            COUNT(uptime_logs.id) as total_checks,
-            SUM(CASE WHEN uptime_logs.status = 'UP' THEN 1 ELSE 0 END) as up_checks,
-            ROUND(
-                (SUM(CASE WHEN uptime_logs.status = 'UP' THEN 1 ELSE 0 END) * 100.0) / 
-                COUNT(uptime_logs.id), 
-                2
-            ) as uptime_percentage
+            COUNT(uptime_logs.id) AS total_checks,
+            COALESCE(SUM(CASE WHEN uptime_logs.status = 'UP' THEN 1 ELSE 0 END), 0) AS up_checks,
+            COALESCE(
+                ROUND(
+                    (SUM(CASE WHEN uptime_logs.status = 'UP' THEN 1 ELSE 0 END) * 100.0) / 
+                    NULLIF(COUNT(uptime_logs.id), 0),
+                    2
+                ),
+                0
+            ) AS uptime_percentage
         FROM sites
         LEFT JOIN uptime_logs ON sites.id = uptime_logs.site_id
-        GROUP BY sites.id
+        GROUP BY sites.id, sites.name, sites.url
         ORDER BY sites.id DESC
-    """).fetchall()
+    """)
 
+    stats = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
-    return jsonify([dict(row) for row in stats])
+    return jsonify(stats)
 
 
 scheduler = BackgroundScheduler()
@@ -263,8 +328,6 @@ scheduler.add_job(
     minutes=1
 )
 scheduler.start()
-
-
 
 
 if __name__ == "__main__":
